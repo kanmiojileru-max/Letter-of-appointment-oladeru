@@ -1,0 +1,45 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Link Generator | Letter of Appointment</title>
+<style>
+body{font-family:Georgia,serif;background:#f2eee3;color:#25362b;max-width:820px;margin:32px auto;padding:0 16px}
+h1{color:#064526;font-weight:normal;margin-bottom:4px}p.s{font:14px/1.6 Arial,sans-serif;margin-top:0}
+label{display:block;margin:14px 0 4px;font:700 13px Arial,sans-serif;color:#064526}
+textarea,input{width:100%;padding:11px;border:1px solid #c9a33e;border-radius:6px;font:16px Georgia,serif;background:#fff}textarea{min-height:130px}
+.row{display:flex;gap:12px;flex-wrap:wrap}.row>div{flex:1;min-width:200px}
+button,a.b{display:inline-block;margin:6px 6px 0 0;border:1px solid #c9a33e;border-radius:999px;padding:10px 18px;background:#c79b30;color:#173c27;font:700 12px Arial,sans-serif;letter-spacing:.06em;cursor:pointer;text-decoration:none}
+button.g,a.g{background:#fff;color:#064526;border-color:#064526}
+table{width:100%;border-collapse:collapse;margin-top:18px;font:14px Arial,sans-serif}td,th{padding:9px 8px;border-bottom:1px solid #d7bc63;text-align:left;vertical-align:top}
+td.l{word-break:break-all;color:#4a5b50;font-size:12px}#res{display:none}
+</style></head><body>
+<h1>Letter of Appointment: Link Generator</h1>
+<p class="s">Add one recipient per line. Optionally add a reference number after a "|" (for example <i>Evang. Tokunbo | CCC/IJP4/001</i>). Each person gets their own link.</p>
+<label for="names">Recipients</label><textarea id="names" placeholder="Evang. Tokunbo | CCC/IJP4/001&#10;Mr. Adewale Bello&#10;Mrs. Ngozi Okafor | CCC/IJP4/003"></textarea>
+<div class="row"><div><label for="date">Letter date (optional)</label><input id="date" placeholder="e.g. 1 November 2026"></div></div>
+<button id="go">Create links</button>
+<div id="res">
+ <table><thead><tr><th>Recipient</th><th>Link</th><th></th></tr></thead><tbody id="rows"></tbody></table>
+ <button id="copyAll" class="g">Copy all links</button><button id="csv" class="g">Download CSV</button>
+</div>
+<script>
+const base=new URL('./',location.href).href;let out=[];
+const clean=s=>s.replace(/[\u0000-\u001f<>]/g,'').trim();
+document.getElementById('go').onclick=()=>{
+ const date=clean(document.getElementById('date').value);out=[];
+ document.getElementById('names').value.split('\n').map(clean).filter(Boolean).forEach(line=>{
+  const [n,r]=line.split('|').map(s=>clean(s||''));const u=new URL(base);u.searchParams.set('name',n);if(r)u.searchParams.set('ref',r);if(date)u.searchParams.set('date',date);out.push({n,url:u.href});});
+ const tb=document.getElementById('rows');tb.textContent='';
+ if(!out.length){alert('Please enter at least one name.');return}
+ out.forEach(o=>{const tr=document.createElement('tr');
+  const a=document.createElement('td');a.textContent=o.n;
+  const b=document.createElement('td');b.className='l';b.textContent=o.url;
+  const c=document.createElement('td');
+  const cp=document.createElement('button');cp.className='g';cp.textContent='Copy';cp.onclick=()=>navigator.clipboard.writeText(o.url).then(()=>cp.textContent='Copied');
+  const wa=document.createElement('a');wa.className='b g';wa.target='_blank';wa.rel='noopener';wa.textContent='WhatsApp';
+  wa.href='https://wa.me/?text='+encodeURIComponent('Greetings '+o.n+'. Please open your Letter of Appointment from CCC Ijeshatedo Parish IV: '+o.url);
+  c.append(cp,wa);tr.append(a,b,c);tb.appendChild(tr);});
+ document.getElementById('res').style.display='block';
+};
+document.getElementById('copyAll').onclick=e=>navigator.clipboard.writeText(out.map(o=>o.n+'\t'+o.url).join('\n')).then(()=>e.target.textContent='Copied');
+document.getElementById('csv').onclick=()=>{const q=s=>'"'+s.replace(/"/g,'""')+'"';
+ const blob=new Blob(['Name,Link\n'+out.map(o=>q(o.n)+','+q(o.url)).join('\n')],{type:'text/csv'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='appointment-links.csv';a.click();};
+</script></body></html>
